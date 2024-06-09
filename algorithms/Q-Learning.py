@@ -1,4 +1,12 @@
 '''
+Simple Grid World Problem
+Initial state. The goal is to reach 'G'. Agent is at (0,0). X are obstacles.
+    A - - - - 
+    - X X - - 
+    - - X - - 
+    - - X - - 
+    - - - - G 
+    
 # Parameters
 learning_rate = 0.1  # Typical values range between 0 and 1
 discount_factor = 0.9  # Discount factor for future rewards
@@ -34,8 +42,8 @@ class Q_Learning():
         self.discount_factor = discount_factor
         
         self.num_of_episode = 1000
-        Q, action_dict, goal_position, obstacles = self.initialize(self.n)
-        self.run(self.n, goal_position, obstacles, self.epsilon, Q, action_dict)
+        Q, action_dict, action_map, goal_position, obstacles = self.initialize(self.n)
+        self.run(self.n, goal_position, obstacles, self.epsilon, Q, action_dict, action_map)
         
     def initialize(self, n):
         '''
@@ -45,9 +53,10 @@ class Q_Learning():
         
         # Action encoding: up = 0, down = 1, left = 2, right = 3
         action_dict = { 0: -n, 1: n, 2: -1, 3: 1}
+        action_map = {0: 'up', 1: 'down', 2: 'left', 3: 'right'}
         goal_position = n * n - 1
         obstacles = {6, 7, 12, 17}
-        return Q, action_dict, goal_position, obstacles
+        return Q, action_dict, action_map, goal_position, obstacles
     
     def print_grid(self, n, state, goal_position, obstacles):
         for i in range(n):
@@ -72,26 +81,35 @@ class Q_Learning():
             return -10
         else:
             return -1
-
-    def run(self, n, goal_position, obstacles, epsilon, Q, action_dict,):
+    
+    def get_optimal_policy(self, Q, state):
+        return np.argmax(Q[state])
+    
+    def run(self, n, goal_position, obstacles, epsilon, Q, action_dict, action_map):
         start_time = time.time() 
         for episode in range(self.num_of_episode):
             state = 0 # top left corner
             steps = 0 # state taken in an episode
             
             while state != goal_position:
-                print(f"Episode {episode + 1}, Step {steps + 1}")
+                print(f"========= Episode {episode + 1}, Step {steps + 1} =========")
                 self.print_grid(n, state, goal_position, obstacles)
                 
                 if random.uniform(0, 1) > epsilon:
+                    print(f'Exploration')
                     action = random.choice([0,1,2,3]) #explore
+                    print(f'Chosen Action {action_map[action]}')
                 else:
+                    print(f'Exploitation Q[{state}] {Q[state]}')
                     action = np.argmax(Q[state])
+                    print(f'Chosen Action {action_map[action]}')
             
                 # Take action and observe new state and reward
                 next_state = state + action_dict[action]
+                print(f'state {state} next state {next_state}')
                 next_state = max(0, min(n*n-1, next_state))
                 reward = self.get_reward(next_state, goal_position, obstacles)
+                print(f'reward {reward}')
                 
                 #Q-Learning update
                 old_value = Q[state, action]
@@ -102,12 +120,16 @@ class Q_Learning():
                 state = next_state
                 steps += 1
         
+                print(f'Updated: Q-table: \n {Q}')
+            
             end_time = time.time()  # Record the end time of the episode
             duration = end_time - start_time  # Calculate the duration of the episode
             print(f"Completed in {duration:.2f} seconds.")
             print("Final state of this episode:")
             self.print_grid(n, state, goal_position, obstacles)
-        
+            
+            
+    
 if __name__ == '__main__':
     grid_size = 5
     epsilon = 0.1
