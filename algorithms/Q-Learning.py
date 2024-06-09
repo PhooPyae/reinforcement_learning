@@ -1,6 +1,6 @@
 '''
 Simple Grid World Problem
-Initial state. The goal is to reach 'G'. Agent is at (0,0). X are obstacles.
+Initial state. The goal is to reach 'G'. Agent is at (0,0). X are obstacles. Actions [up, down, left, right]
     A - - - - 
     - X X - - 
     - - X - - 
@@ -96,25 +96,22 @@ class Q_Learning():
                 self.print_grid(n, state, goal_position, obstacles)
                 
                 if random.uniform(0, 1) > epsilon:
-                    print(f'Exploration')
                     action = random.choice([0,1,2,3]) #explore
-                    print(f'Chosen Action {action_map[action]}')
+                    print(f'Exploration: Chosen Action {action_map[action]}')
                 else:
-                    print(f'Exploitation Q[{state}] {Q[state]}')
                     action = np.argmax(Q[state])
-                    print(f'Chosen Action {action_map[action]}')
+                    print(f'Exploitation of Q[{state}]: Chosen Action {action_map[action]}')
             
                 # Take action and observe new state and reward
                 next_state = state + action_dict[action]
-                print(f'state {state} next state {next_state}')
                 next_state = max(0, min(n*n-1, next_state))
                 reward = self.get_reward(next_state, goal_position, obstacles)
-                print(f'reward {reward}')
+                print(f'Reward: {reward}')
                 
                 #Q-Learning update
                 old_value = Q[state, action]
                 Q[state, action] += self.learning_rate * (reward + self.discount_factor * np.max(Q[next_state]) - Q[state,action])
-                print(f"Q-Value Updated: Q[{state}, {action}] from {old_value:.2f} to {Q[state, action]:.2f}")
+                print(f'Q-Value Updated: Q[{state}, {action}] from {old_value:.2f} to {Q[state, action]:.2f}')
 
                 # Move to the next state
                 state = next_state
