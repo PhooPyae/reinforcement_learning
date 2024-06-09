@@ -75,10 +75,8 @@ class SARSA():
         
     def get_reward(self, state):
         if state == self.goal_position:
-            return 100  # Reward for reaching the goal
-        if state in self.obstacles:
-            return -10  # Penalty for hitting an obstacle
-        return -1  # Small penalty for each move
+            return 1
+        return -1
     
     def epsilon_greedy_policy(self, state):
         if random.uniform(0, 1) < self.epsilon:
@@ -89,6 +87,24 @@ class SARSA():
             print(f'Exploitation of Q[{state}]: Chosen Action {self.action_map[action]}')
         return action
     
+    def print_grid_with_actions(self, n, obstacles, goal_position, action_map, max_indices):
+        grid = [['-' for _ in range(n)] for _ in range(n)]
+        
+        # Set obstacles and goal in the grid
+        for obs in obstacles:
+            grid[obs // n][obs % n] = 'X'
+        grid[goal_position // n][goal_position % n] = 'G'
+        
+        # Set actions in the grid
+        for i in range(n * n):
+            if i not in obstacles and i != goal_position:
+                grid[i // n][i % n] = action_map[max_indices[i]][0].upper()  # Use the first letter of the action
+        
+        # Print the grid
+        for row in grid:
+            print(' '.join(row))
+        print()
+        
     def run(self):
         start_time = time.time() 
         for episode in range(self.num_of_episode):
@@ -99,15 +115,20 @@ class SARSA():
             while state != self.goal_position:
                 print(f"========= Episode {episode + 1}, Step {steps + 1} =========")
                 
-                next_state = state + self.action_dict[action]
+                # Take action and observe new state and reward
+                if state % 5 == 0:
+                    if action == 2:
+                        next_state = state
+                    else:
+                        next_state = state + self.action_dict[action]
+                else:
+                    next_state = state + self.action_dict[action]
+                
                 if next_state in self.obstacles or next_state < 0 or next_state >= self.n*self.n:
                     next_state = state  # Stay in the current state if the move is illegal
-                print(f'state {state}| next state {next_state}')
                 
                 next_action = self.epsilon_greedy_policy(next_state)
-                print(f'next action {next_action}')
                 reward = self.get_reward(next_state)
-                print(f'Reward: {reward}')
                 
                 #Q-Learning update
                 old_value = self.Q[state, action]
@@ -119,14 +140,17 @@ class SARSA():
                 action = next_action
                 steps += 1
 
-                print(f"Episode {episode + 1}")
                 self.print_grid(state)
-                print(f'Updated: Q-table: \n {self.Q}')
+                # print(f'Updated: Q-table: \n {self.Q}')
                 
+            max_indices = np.argmax(self.Q, axis=1)
+
             end_time = time.time()  # Record the end time of the episode
             duration = end_time - start_time  # Calculate the duration of the episode
             print(f"Completed in {duration:.2f} seconds.")
             print("Final state of this episode:")
+            self.print_grid(state)
+            self.print_grid_with_actions(self.n, self.obstacles, self.goal_position, self.action_map, max_indices)
             
             
     

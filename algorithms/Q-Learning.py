@@ -40,7 +40,7 @@ class Q_Learning():
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         
-        self.num_of_episode = 100
+        self.num_of_episode = 1000
         Q, action_dict, action_map, goal_position, obstacles = self.initialize(self.n)
         self.run(self.n, goal_position, obstacles, self.epsilon, Q, action_dict, action_map)
         
@@ -127,7 +127,7 @@ class Q_Learning():
                 else:
                     next_state = state + action_dict[action]
                     
-                if next_state > 24 or next_state < 0:
+                if next_state > self.n*self.n-1 or next_state < 0:
                     next_state = state
                 reward = self.get_reward(state, next_state, goal_position, obstacles)
                 print(f'Reward: {reward}')
