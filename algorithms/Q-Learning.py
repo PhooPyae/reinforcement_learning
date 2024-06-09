@@ -33,7 +33,7 @@ class Q_Learning():
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         
-        self.num_of_episode = 100
+        self.num_of_episode = 1000
         Q, action_dict, goal_position, obstacles = self.initialize(self.n)
         self.run(self.n, goal_position, obstacles, self.epsilon, Q, action_dict)
         
@@ -84,29 +84,29 @@ class Q_Learning():
                 self.print_grid(n, state, goal_position, obstacles)
                 
                 if random.uniform(0, 1) > epsilon:
-                    action = random.choice([0,1,2,3,4]) #explore
+                    action = random.choice([0,1,2,3]) #explore
                 else:
                     action = np.argmax(Q[state])
             
-            # Take action and observe new state and reward
-            next_state = state + action_dict[action]
-            next_state = max(0, min(n*n-1, next_state))
-            reward = self.get_reward(next_state)
-            
-            #Q-Learning update
-            old_value = Q[state, action]
-            Q[state, action] += self.learning_rate * (reward + self.discount_factor * np.max(Q[next_state]) - Q[state,action])
-            print(f"Q-Value Updated: Q[{state}, {action}] from {old_value:.2f} to {Q[state, action]:.2f}")
+                # Take action and observe new state and reward
+                next_state = state + action_dict[action]
+                next_state = max(0, min(n*n-1, next_state))
+                reward = self.get_reward(next_state, goal_position, obstacles)
+                
+                #Q-Learning update
+                old_value = Q[state, action]
+                Q[state, action] += self.learning_rate * (reward + self.discount_factor * np.max(Q[next_state]) - Q[state,action])
+                print(f"Q-Value Updated: Q[{state}, {action}] from {old_value:.2f} to {Q[state, action]:.2f}")
 
-            # Move to the next state
-            state = next_state
-            step += 1
-    
-        end_time = time.time()  # Record the end time of the episode
-        duration = end_time - start_time  # Calculate the duration of the episode
-        print(f"Completed in {duration:.2f} seconds.")
-        print("Final state of this episode:")
-        self.print_grid(n, state, goal_position, obstacles)
+                # Move to the next state
+                state = next_state
+                steps += 1
+        
+            end_time = time.time()  # Record the end time of the episode
+            duration = end_time - start_time  # Calculate the duration of the episode
+            print(f"Completed in {duration:.2f} seconds.")
+            print("Final state of this episode:")
+            self.print_grid(n, state, goal_position, obstacles)
         
 if __name__ == '__main__':
     grid_size = 5
