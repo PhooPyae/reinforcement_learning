@@ -33,7 +33,6 @@ EndFor
 import numpy as np
 import random 
 import time
-
 class Q_Learning():
     def __init__(self, n, epsilon, learning_rate, discount_factor, ):
         self.n = n
@@ -41,7 +40,7 @@ class Q_Learning():
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         
-        self.num_of_episode = 1000
+        self.num_of_episode = 100
         Q, action_dict, action_map, goal_position, obstacles = self.initialize(self.n)
         self.run(self.n, goal_position, obstacles, self.epsilon, Q, action_dict, action_map)
         
@@ -73,14 +72,31 @@ class Q_Learning():
             print()
         print() #Extra newline for better separation
         
+    def print_grid_with_actions(self, n, obstacles, goal_position, action_map, max_indices):
+        grid = [['-' for _ in range(n)] for _ in range(n)]
         
-    def get_reward(self, state, goal_position, obstacles):
+        # Set obstacles and goal in the grid
+        for obs in obstacles:
+            grid[obs // n][obs % n] = 'X'
+        grid[goal_position // n][goal_position % n] = 'G'
+        
+        # Set actions in the grid
+        for i in range(n * n):
+            if i not in obstacles and i != goal_position:
+                grid[i // n][i % n] = action_map[max_indices[i]][0].upper()  # Use the first letter of the action
+        
+        # Print the grid
+        for row in grid:
+            print(' '.join(row))
+        print()
+        
+        
+    def get_reward(self, prev_state, state, goal_position, obstacles):
         if state == goal_position:
-            return 100
-        elif state in obstacles:
-            return -10
-        else:
-            return -1
+            return 1
+        if state in obstacles:
+            return -2
+        return -1
     
     def get_optimal_policy(self, Q, state):
         return np.argmax(Q[state])
@@ -95,7 +111,7 @@ class Q_Learning():
                 print(f"========= Episode {episode + 1}, Step {steps + 1} =========")
                 self.print_grid(n, state, goal_position, obstacles)
                 
-                if random.uniform(0, 1) > epsilon:
+                if random.uniform(0, 1) < epsilon:
                     action = random.choice([0,1,2,3]) #explore
                     print(f'Exploration: Chosen Action {action_map[action]}')
                 else:
@@ -103,9 +119,17 @@ class Q_Learning():
                     print(f'Exploitation of Q[{state}]: Chosen Action {action_map[action]}')
             
                 # Take action and observe new state and reward
-                next_state = state + action_dict[action]
-                next_state = max(0, min(n*n-1, next_state))
-                reward = self.get_reward(next_state, goal_position, obstacles)
+                if state % 5 == 0:
+                    if action == 2:
+                        next_state = state
+                    else:
+                        next_state = state + action_dict[action]
+                else:
+                    next_state = state + action_dict[action]
+                    
+                if next_state > 24 or next_state < 0:
+                    next_state = state
+                reward = self.get_reward(state, next_state, goal_position, obstacles)
                 print(f'Reward: {reward}')
                 
                 #Q-Learning update
@@ -117,19 +141,22 @@ class Q_Learning():
                 state = next_state
                 steps += 1
         
-                print(f'Updated: Q-table: \n {Q}')
+                # print(f'Updated: Q-table: \n {Q}')
             
+            max_indices = np.argmax(Q, axis=1)
+
             end_time = time.time()  # Record the end time of the episode
             duration = end_time - start_time  # Calculate the duration of the episode
             print(f"Completed in {duration:.2f} seconds.")
             print("Final state of this episode:")
             self.print_grid(n, state, goal_position, obstacles)
+            self.print_grid_with_actions(n, obstacles, goal_position, action_map, max_indices)
             
             
     
 if __name__ == '__main__':
     grid_size = 5
-    epsilon = 0.1
+    epsilon = 0.5
     learning_rate = 0.1
     discount_factor = 0.9
     

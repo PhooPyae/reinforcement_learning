@@ -117,6 +117,7 @@ class SARSA():
                 
                 state = next_state
                 action = next_action
+                steps += 1
 
                 print(f"Episode {episode + 1}")
                 self.print_grid(state)
