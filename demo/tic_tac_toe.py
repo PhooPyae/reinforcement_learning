@@ -24,10 +24,9 @@ class TicTacToe():
 
         # Check if any winning condition is satisfied
         for condition in win_conditions:
-            if self.state[condition[0]] == self.state[condition[1]] == self.state[condition[2]] != ' ':
+            if self.state[condition[0]] == self.state[condition[1]] == self.state[condition[2]] != '_':
                 # return board_str[condition[0]]  # Return 'X' or 'O' for winner
                 return True
-
         return False  # No winner found
 
     def check_draw(self):
@@ -37,7 +36,11 @@ class TicTacToe():
         logger.info(f'action {action}')
         current_player = self.get_current_player()
         self.state = self.state[:action] + current_player + self.state[action + 1:]
-        return None
+        is_terminal = self.check_win() or self.check_draw()
+        logger.info(f'{self.state=}')
+        logger.info(f'{is_terminal=}')
+            
+        return self.state, is_terminal
         
     def get_current_player(self):
         if self.state.count('X') > self.state.count('O'):
@@ -101,11 +104,11 @@ class QLearning():
     
     def run(self):
         for episode in range(self.episodes):
-            
-            while self.tttoe.check_win() or self.tttoe.check_draw():
+            is_terminal = False 
+            while not is_terminal:
                 valid_actions = self._get_valid_actions(self.tttoe.state)
                 action = self._epsilon_greedy_policy(self.tttoe.state, valid_actions)
-                self.tttoe.step(action)
+                next_state, is_terminal = self.tttoe.step(action)
                 self.tttoe.print_board()
             break
         return
