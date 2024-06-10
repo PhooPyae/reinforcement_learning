@@ -31,16 +31,25 @@ class TicTacToe():
 
     def check_draw(self):
         return '_' not in self.state  # Return True if no empty spaces left, hence a draw
+    
+    def _get_reward(self):
+        if self.check_win():
+            return 1
+        if self.check_draw():
+            return -0.1
+        return -1
 
     def step(self, action):
         logger.info(f'action {action}')
         current_player = self.get_current_player()
         self.state = self.state[:action] + current_player + self.state[action + 1:]
-        is_terminal = self.check_win() or self.check_draw()
+        reward = self._get_reward()
+        done = self.check_win() or self.check_draw()
         logger.info(f'{self.state=}')
-        logger.info(f'{is_terminal=}')
-            
-        return self.state, is_terminal
+        logger.info(f'{done=}')
+        logger.info(f'{reward=}')
+
+        return self.state, reward, done
         
     def get_current_player(self):
         if self.state.count('X') > self.state.count('O'):
@@ -81,12 +90,7 @@ class QLearning():
         self.Q = {}
         self.actions = range(0,9)
         
-    def _get_reward(self, state):
-        if self.tttoe.check_win(state):
-            return 1
-        if self.tttoe.check_draw(state):
-            return -0.1
-        return -1
+    
     
     def _get_valid_actions(self, state):
         valid_actions = [i for i, x in enumerate(state) if x == '_']
@@ -102,15 +106,20 @@ class QLearning():
             logger.info(f'Exploitation!')
         return action
     
+    def update_Q_value(self, state, action):
+        if not state in self.Q:
+            self.Q[state] = np.zeros(9)
+        self.Q[state][action] =  self.Q[state][action] + self.learning_rate * (self.discount_factor * np.max(self.Q[state]) - self.Q[state][action])
+    
     def run(self):
         for episode in range(self.episodes):
-            is_terminal = False 
-            while not is_terminal:
+            done = False 
+            while not done:
                 valid_actions = self._get_valid_actions(self.tttoe.state)
                 action = self._epsilon_greedy_policy(self.tttoe.state, valid_actions)
-                next_state, is_terminal = self.tttoe.step(action)
+                _, reward, done = self.tttoe.step(action)
+                self.update_Q_value(self.tttoe.state, action)
                 self.tttoe.print_board()
-            break
         return
             
             
