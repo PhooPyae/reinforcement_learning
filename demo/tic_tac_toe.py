@@ -1,3 +1,5 @@
+import json
+import pprint
 import numpy as np
 import random
 import logging
@@ -6,8 +8,10 @@ logger = logging.getLogger(__name__)
 
 class TicTacToe():
     def __init__(self):
-        self.state = '_'*9
-        return None
+        self.state = '_' * 9
+
+    def reset(self):
+        self.state = '_' * 9
     
     def check_win(self):
         # Define win conditions based on board positions
@@ -25,31 +29,37 @@ class TicTacToe():
         # Check if any winning condition is satisfied
         for condition in win_conditions:
             if self.state[condition[0]] == self.state[condition[1]] == self.state[condition[2]] != '_':
-                # return board_str[condition[0]]  # Return 'X' or 'O' for winner
                 return True
-        return False  # No winner found
+        return False
 
     def check_draw(self):
         return '_' not in self.state  # Return True if no empty spaces left, hence a draw
     
     def _get_reward(self):
         if self.check_win():
-            return 1
+            return 20
         if self.check_draw():
-            return -0.1
+            return -1
         return -1
 
     def step(self, action):
-        logger.info(f'action {action}')
-        current_player = self.get_current_player()
-        self.state = self.state[:action] + current_player + self.state[action + 1:]
-        reward = self._get_reward()
-        done = self.check_win() or self.check_draw()
-        logger.info(f'{self.state=}')
-        logger.info(f'{done=}')
-        logger.info(f'{reward=}')
+        if action < 0 or action > 8:
+            raise ValueError('Invalid action')
 
-        return self.state, reward, done
+        logger.debug(f'{action=}')
+
+        current_player = self.get_current_player()
+        next_state = self.state[:action] + current_player + self.state[action + 1:]
+        logger.debug(f'{next_state=}')
+
+        self.state = next_state
+        reward = self._get_reward()
+        logger.debug(f'{reward=}')
+
+        done = self.check_win() or self.check_draw()
+        logger.debug(f'{done=}')
+
+        return next_state, reward, done
         
     def get_current_player(self):
         if self.state.count('X') > self.state.count('O'):
@@ -57,15 +67,10 @@ class TicTacToe():
         else:
             return 'X'  # X's turn
 
-    def game_status(self, board_str):
-        winner = self.check_win(board_str)
-        if winner:
-            return f"Winner: {winner}"  # Announce winner
-        elif self.check_draw(board_str):
-            return "Draw"  # Declare a draw if board is full
-        else:
-            return "Continue"  # Game should continue
-    
+    def get_available_actions(self):
+        valid_actions = [i for i, x in enumerate(self.state) if x == '_']
+        return valid_actions
+
     def print_board(self):
         # Check if the board string is valid
         if len(self.state) != 9:
@@ -78,62 +83,3 @@ class TicTacToe():
             print(f"{self.state[i]} | {self.state[i+1]} | {self.state[i+2]}")
             if i < 6:
                 print("---------")  # Print separating lines between rows
-
-class QLearning():
-    def __init__(self):
-        self.tttoe = TicTacToe()
-        self.epsilon = 0.1
-        self.learning_rate = 0.1
-        self.discount_factor = 0.9
-        self.episodes = 1000
-        
-        self.Q = {}
-        self.actions = range(0,9)
-        
-    
-    
-    def _get_valid_actions(self, state):
-        valid_actions = [i for i, x in enumerate(state) if x == '_']
-        logger.info(f'valid actions {valid_actions}')
-        return valid_actions
-
-    def _epsilon_greedy_policy(self, state, valid_actions):
-        if random.uniform(0, 1) < self.epsilon:
-            action = random.choice(valid_actions)  # Exploration
-            logger.info(f'Exploration!')
-        else:
-            action = np.argmax(self.Q[state]) if state in self.Q else valid_actions[0] # Exploitation
-            logger.info(f'Exploitation!')
-        return action
-    
-    def update_Q_value(self, state, action):
-        if not state in self.Q:
-            self.Q[state] = np.zeros(9)
-        self.Q[state][action] =  self.Q[state][action] + self.learning_rate * (self.discount_factor * np.max(self.Q[state]) - self.Q[state][action])
-    
-    def run(self):
-        for episode in range(self.episodes):
-            done = False 
-            while not done:
-                valid_actions = self._get_valid_actions(self.tttoe.state)
-                action = self._epsilon_greedy_policy(self.tttoe.state, valid_actions)
-                _, reward, done = self.tttoe.step(action)
-                self.update_Q_value(self.tttoe.state, action)
-                self.tttoe.print_board()
-        return
-            
-            
-        
-    
-if __name__ == '__main__':
-    # tictactoe = TicTacToe()
-    # # Example board configuration as a string
-    # board_str = "X_O______"
-
-    # # Check the game status
-    # logger.info(tictactoe.game_status(board_str))
-    q_learning = QLearning()
-    q_learning.run()
-
-            
-        
