@@ -3,6 +3,7 @@ from gymnasium.wrappers import RecordVideo
 import logging
 from combine_video import combine_videos
 import json
+import numpy as np
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -13,7 +14,7 @@ if __name__ == '__main__':
     env = gym.make("FrozenLake-v1", is_slippery=False)
     episodes = 1000
     output = []
-    reward_over_episode = 0
+    reward_over_episode = []
     for episode in range(episodes):
         obs, info = env.reset()
         total_reward = 0
@@ -25,5 +26,5 @@ if __name__ == '__main__':
             obs_, reward, done, info, _ = env.step(action)
             total_reward += reward
         print(f'episode {episode}, total reward {total_reward:.1f}')
-        reward_over_episode += reward
-    print(f'Average Reward: {reward_over_episode/episodes}')
+        reward_over_episode.append(total_reward)
+    print(f'Average Reward: {np.mean(reward_over_episode)}')
