@@ -2,8 +2,10 @@ import numpy as np
 import random 
 import time
 import gymnasium as gym
+from gymnasium.wrappers import RecordVideo
 import logging
 from collections import defaultdict
+from combine_video import combine_videos
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -125,13 +127,16 @@ class Q_Learning():
         return self.Q
     
 if __name__ == '__main__':
-    # env = gym.make("FrozenLake-v1", is_slippery=False)
-    env = gym.make("FrozenLake-v1", render_mode = 'human', is_slippery=False)
-    # env = CustomRewardFrozenLake(env)
-    total_episodes = 2000
-    learning_rate = 0.8
-    gamma = 0.95
-    epsilon = 1
+    env = gym.make("FrozenLake-v1", is_slippery=False)
+    # env = gym.make("FrozenLake-v1", render_mode = 'rgb_array', is_slippery=False)
+    # env = RecordVideo(env, video_folder="frozenlake-agent-qlearning", name_prefix="eval",
+    #               episode_trigger=lambda episode_id: episode_id % 10 == 0)
+    env = CustomRewardFrozenLake(env)
+    reward_over_episode = 0
+    total_episodes = 100
+    learning_rate = 0.5
+    gamma = 0.999
+    epsilon = .3
     action_size = env.action_space.n
     state_size = env.observation_space.n
     print(f"Action size: {action_size}")
@@ -140,8 +145,14 @@ if __name__ == '__main__':
     q_learning_agent = Q_Learning(learning_rate=learning_rate, gamma=gamma, epsilon=epsilon, state_size=state_size, action_size=action_size)
 
     # Train the agent
-    # q_learning_agent.train(env, episodes=1000)
-    # q_learning_agent.save_q_table(filename="frozen_lake_q_table.pkl")
+    total_rewards = q_learning_agent.train(env, episodes=total_episodes)
+    print(f'Average Reward: {np.mean(total_rewards)}')
+    q_learning_agent.save_q_table(filename="frozen_lake_q_table.pkl")
+    import json
+    with open('episode_rewards.json', 'w', encoding='utf-8') as f:
+        json.dump(total_rewards, f, ensure_ascii=False, indent=4)
+
+    # combine_videos('frozenlake-agent-qlearning', 'frozenlake-agent-qlearning.mp4')
     # Load and test the agent
-    q_learning_agent.load_q_table("frozen_lake_q_table.pkl")
-    q_learning_agent.test(env, episodes=1)
+    # q_learning_agent.load_q_table("frozen_lake_q_table.pkl")
+    # q_learning_agent.test(env, episodes=1)
