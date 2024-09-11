@@ -5,7 +5,7 @@ from gymnasium.wrappers import RecordVideo
 from combine_video import combine_videos
 import json
 
-env = gym.make("LunarLander-v2",  render_mode="rgb_array")
+env = gym.make("LunarLander-v2",  render_mode="human")
 env = RecordVideo(env, video_folder="lunarlander-agent-reinforce", name_prefix="eval",
                   episode_trigger=lambda x: True)
 

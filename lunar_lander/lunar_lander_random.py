@@ -7,9 +7,9 @@ import json
 logging.basicConfig(level=logging.WARNING)
 
 if __name__ == '__main__':
-    env = gym.make("LunarLander-v2",  render_mode="rgb_array")
-    env = RecordVideo(env, video_folder="lunarlander-agent-random", name_prefix="eval",
-                  episode_trigger=lambda x: True)
+    env = gym.make("LunarLander-v2",  render_mode="human")
+    # env = RecordVideo(env, video_folder="lunarlander-agent-random", name_prefix="eval",
+    #               episode_trigger=lambda x: True)
 
     episodes = 100
     output = []
@@ -21,10 +21,11 @@ if __name__ == '__main__':
             action = env.action_space.sample()
             obs_, reward, done, info, _ = env.step(action)
             score += reward
+            env.render()
         message = f'episode {episode}, total reward {score:.1f}'
         output.append(message)
         
     with open('result.json', 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False, indent=4)
     env.close()
-    combine_videos('lunarlander-agent-random', 'combined_video.mp4')
+    # combine_videos('lunarlander-agent-random', 'combined_video.mp4')
