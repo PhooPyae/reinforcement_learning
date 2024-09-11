@@ -39,7 +39,7 @@ class Agent:
         n_iters = int(config.capacity/config.batch_size)
         
         for _ in range(n_iters):
-            states , actions, next_states, rewards, dones = self.memory.sample(config.batch_size)
+            states , actions, rewards, next_states, dones = self.memory.sample(config.batch_size)
             states = states.to(config.device)
             actions = torch.tensor(actions.to(config.device), dtype=torch.int64)
             next_states = next_states.to(config.device)
@@ -47,7 +47,8 @@ class Agent:
             dones = dones.to(config.device)
 
             q_next_values = self.q_target_network(next_states)
-            max_q_next_values, _ = torch.max(q_next_values, axis = 1).unsqueeze(1)
+            max_q_next_values, _ = torch.max(q_next_values, axis = 1)
+            max_q_next_values = max_q_next_values.unsqueeze(1)
 
             q_target = rewards + config.gamma * max_q_next_values * (1 - dones)
 

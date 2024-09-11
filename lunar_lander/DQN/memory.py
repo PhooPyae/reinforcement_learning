@@ -18,15 +18,15 @@ class ReplayBuffer:
         )).float()
         actions = torch.from_numpy(np.vstack(
             [e[1] for e in sample if e is not None]
-        )).float()
-        next_states = torch.from_numpy(np.vstack(
+        )).int()
+        rewards = torch.from_numpy(np.vstack(
             [e[2] for e in sample if e is not None]
         )).float()
-        rewards = torch.from_numpy(np.vstack(
+        next_states = torch.from_numpy(np.vstack(
             [e[3] for e in sample if e is not None]
         )).float()
         dones = torch.from_numpy(np.vstack(
             [e[4] for e in sample if e is not None]
         )).float()
 
-        return states, actions, next_states, rewards, dones
+        return states, actions, rewards, next_states, dones
