@@ -30,6 +30,7 @@ if __name__ == '__main__':
             action = agent.choose_action(state)
             next_state, reward, dones, info, _ = env.step(action)
             state = next_state
+            reward = reward / 7.0
             env_step += 1
             score += reward
             

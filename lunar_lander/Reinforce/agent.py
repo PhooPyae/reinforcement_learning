@@ -1,8 +1,8 @@
-from torch.optim as optim
+import torch.optim as optim
+import torch
 
 from network import PolicyNetwork
 from config import Config as config
-import sys
 
 class Agent:
     def __init__(self, state_space, action_space):
