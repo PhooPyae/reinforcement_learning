@@ -42,6 +42,9 @@ class Agent:
             G_t = reward + self.gamma * G_t
             G.insert(0, G_t)
 
+        G = torch.tensor(G)
+        G = (G - G.mean()) / (G.std() + 1e-9)  # Normalize the return
+
         for g, log_prob in zip(G, self.action_log_probs):
             loss += - (g * log_prob)
 
