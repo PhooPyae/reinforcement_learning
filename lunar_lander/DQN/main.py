@@ -26,7 +26,7 @@ if __name__ == '__main__':
         env_step = 0
         cumulative_reward = 0
         
-        while not done and env_step < config.max_game_step:
+        while not done or env_step < config.max_game_step:
             action = agent.choose_action(state)
             next_state, reward, done, info, _ = env.step(action)
             
