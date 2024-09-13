@@ -10,6 +10,7 @@ class Agent:
         self.state_space = state_space
         self.action_space = action_space
         self.device = config.device
+        self.gamma = config.gamma
         
         self.actor_critic_network = ActorCriticNetwork(self.state_space, self.action_space)
         self.optimizer = optim.Adam(self.actor_critic_network.parameters(), lr=config.learning_rate)
@@ -26,5 +27,23 @@ class Agent:
         
         return action.item()
     
-    def learn(self):
-        return None
+    def learn(self, state, next_state, reward):
+        self.optimizer.zero_grad()
+
+        state = torch.tensor(state, dtype=torch.float32).to(self.device)
+        next_state = torch.tensor(next_state, dtype=torch.float32).to(self.device)
+
+        _, v_state = self.actor_critic_network(state)
+        _, v_next_state = self.actor_critic_network(next_state)
+
+        delta = reward + self.gamma * v_next_state - v_state
+
+        actor_loss = - delta * self.log_prob
+        critic_loss = delta ** 2
+
+        loss = actor_loss + critic_loss
+
+        loss.backward()
+        self.optimizer.step()
+
+        return loss.item()
