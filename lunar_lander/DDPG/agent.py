@@ -16,6 +16,7 @@ class Agent:
         self.alpha = config.alpha #actor learning rate
         self.beta = config.beta #critic learning rate
         self.max_size = config.max_size
+        self.device = config.device
 
         self.replay_buffer = ReplayBuffer(config.max_size, state_space, action_space)
 
@@ -29,3 +30,17 @@ class Agent:
 
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=self.alpha)
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=self.beta)
+    
+    def choose_action(self, state):
+        self.actor.eval()
+        
+        state = torch.tensor(state, dtype=torch.float32).to(self.device)
+        noise = torch.tensor(self.noise, dtype=torch.float32).to(self.device)
+        mu = self.actor_network(state)
+        mu_prime = mu + noise
+        
+        self.actor.train()
+        return mu_prime
+    
+    
+    
