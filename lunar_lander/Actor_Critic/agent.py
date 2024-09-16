@@ -11,11 +11,13 @@ class Agent:
         self.action_space = action_space
         self.device = config.device
         self.gamma = config.gamma
+        self.entropy_coef = 0.01
         
-        self.actor_critic_network = ActorCriticNetwork(self.state_space, self.action_space)
+        self.actor_critic_network = ActorCriticNetwork(self.state_space, self.action_space).to(self.device)
         self.optimizer = optim.Adam(self.actor_critic_network.parameters(), lr=config.learning_rate)
         
         self.log_prob = None
+        self.entropy = None
 
     def choose_action(self, state):
         state = torch.tensor(state, dtype=torch.float32).to(self.device)
@@ -24,6 +26,7 @@ class Agent:
         action_dist = torch.distributions.Categorical(action_probs)
         action = action_dist.sample()
         self.log_prob = action_dist.log_prob(action)
+        self.entropy = action_dist.entropy().mean()
         
         return action.item()
     
@@ -42,6 +45,7 @@ class Agent:
         critic_loss = delta ** 2
 
         loss = actor_loss + critic_loss
+        # loss = actor_loss + critic_loss - self.entropy * self.entropy_coef
 
         loss.backward()
         self.optimizer.step()
