@@ -27,9 +27,9 @@ class Agent:
 
         self.memory = Memory(config["batch_size"])
 
-        self.value_coef = 0.5  # Coefficient for value function loss
-        self.entropy_coef = 0.01  # Coefficient for entropy bonus
-        self.max_grad_norm = 0.5  # Maximum gradient norm for clipping
+        self.value_coef = config["value_coef"]  # Coefficient for value function loss
+        self.entropy_coef = config["entropy_coef"]  # Coefficient for entropy bonus
+        self.max_grad_norm = config["max_grad_norm"]  # Maximum gradient norm for clipping
 
     def choose_action(self, state, action_mask):
 
