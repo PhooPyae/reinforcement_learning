@@ -1,14 +1,18 @@
 import torch
 
 config = {
-    "n_games": 1000,
+    "num_envs": 1_000_000,
     "gamma": 0.99,
-    "max_steps": 5000,
-    "tau": 0.001,
+    "n_epochs": 10,
+
     "alpha": 1e-4,
     "beta": 1e-3,
-    "max_size": 1_000_000,
-    "batch_size": 64,
+    "lambda": 0.95,
+    "policy_clip": 0.2,
+    "batch_size": 5,
+    "fc1_dim" : 256,
+    "fc2_dim": 256,
+    
     "device": torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     "seed": 40
 }

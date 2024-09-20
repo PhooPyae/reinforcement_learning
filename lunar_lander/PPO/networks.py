@@ -19,15 +19,16 @@ class ActorNetwork(nn.Module):
         return dist
 
 class CriticNetwork(nn.Module):
-    def __init__(self, input_dim, output_dim, fc1_dim, fc2_dim):
+    def __init__(self, input_dim, fc1_dim, fc2_dim):
         super(CriticNetwork, self).__init__()
         self.fc1 = nn.Linear(input_dim, fc1_dim)
         self.fc2 = nn.Linear(fc1_dim, fc2_dim)
-        self.fc3 = nn.Linear(fc2_dim, output_dim)
+        self.fc3 = nn.Linear(fc2_dim, 1)
         self.activation = nn.ReLU()
 
     def forward(self, x):
         x = self.activation(self.fc1(x))
-        value = self.activation(self.fc2(x))
+        x = self.activation(self.fc2(x))
+        value = self.fc3(x)
 
         return value
